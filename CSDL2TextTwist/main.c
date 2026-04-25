@@ -38,8 +38,9 @@ Ball *Ball_New(int letter,int x,int y) {
 }
 
 void Ball_Draw(Ball *ball,SDL_Renderer *renderer,SDL_Texture *texture,SDL_Rect *clips) {
+	int letter=ball->letter-'a';
 	SDL_RenderCopy(renderer, texture, &clips[26],&(SDL_Rect){ball->x,ball->y,clips[26].w,clips[26].h});
-	SDL_RenderCopy(renderer, texture, &clips[ball->letter-'a'],&(SDL_Rect){ball->x+(clips[26].w-clips[ball->letter-'a'].w)/2,ball->y+(clips[26].h-clips[ball->letter-'a'].h)/2,clips[ball->letter-'a'].w,clips[ball->letter-'a'].h});
+	SDL_RenderCopy(renderer, texture, &clips[letter],&(SDL_Rect){ball->x+(clips[26].w-clips[letter].w)/2,ball->y+(clips[26].h-clips[letter].h)/2,clips[letter].w,clips[letter].h});
 }
 
 int sgn(int x) {
@@ -77,7 +78,7 @@ char *randline(char *fn) {
 	return chosen;	
 }
 
-void shuffle(Ball **balls,size_t nballs) {
+void BallShuffle(Ball **balls,size_t nballs) {
 	int x[nballs],y[nballs],t;
 
 	for(int i=0;i<nballs;i++) {
@@ -101,6 +102,20 @@ void shuffle(Ball **balls,size_t nballs) {
 		balls[i]->dx=x[i];
 		balls[i]->dy=y[i];
 	}		
+}
+
+char *WordShuffle(char *w0) {
+	char *w1=strdup(w0);
+	int t;
+	for(int i=strlen(w1)-1;i>0;i--) {
+		int j=rand()%(i+1);
+
+		t=w1[i];
+		w1[i]=w1[j];
+		w1[j]=t;
+	}
+
+	return w1;	
 }
 
 int main(void) {
@@ -152,13 +167,14 @@ int main(void) {
     clips[26].h = 64;
     
     char *word=randline("rand.txt");
+    char *shuffled=WordShuffle(word);
     
-    size_t nballs=strlen(word);
+    size_t nballs=strlen(shuffled);
     
     Ball *balls[nballs];
     
     for(int i=0;i<nballs;i++) {
-    	balls[i]=Ball_New(word[i],i*64,0);
+    	balls[i]=Ball_New(shuffled[i],i*64,0);
     }
             
 	while(!quit) {
@@ -168,7 +184,7 @@ int main(void) {
 			case SDL_KEYDOWN: 
 				switch(event.key.keysym.sym) {
 					case SDLK_ESCAPE: quit=true; break;
-					case SDLK_SPACE: if(!moving) { shuffle(balls,nballs); moving=true; } break;
+					case SDLK_SPACE: if(!moving) { BallShuffle(balls,nballs); moving=true; } break;
 					default: break;
 				}
 			break;
