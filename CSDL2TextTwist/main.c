@@ -18,11 +18,12 @@ SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 SDL_Event event;
 
+bool moving=false;
 
 typedef struct {
 	int letter;
-	float x,y;
-	float dx,dy;
+	int x,y;
+	int dx,dy;
 } Ball;
 
 Ball *Ball_New(int letter,int x,int y) {
@@ -39,6 +40,10 @@ Ball *Ball_New(int letter,int x,int y) {
 void Ball_Draw(Ball *ball,SDL_Renderer *renderer,SDL_Texture *texture,SDL_Rect *clips) {
 	SDL_RenderCopy(renderer, texture, &clips[26],&(SDL_Rect){ball->x,ball->y,clips[26].w,clips[26].h});
 	SDL_RenderCopy(renderer, texture, &clips[ball->letter-'a'],&(SDL_Rect){ball->x+(clips[26].w-clips[ball->letter-'a'].w)/2,ball->y+(clips[26].h-clips[ball->letter-'a'].h)/2,clips[ball->letter-'a'].w,clips[ball->letter-'a'].h});
+}
+
+int sgn(int x) {
+	return x>0?1:(x<0?-1:0);
 }
 
 void SetColor(int c) {
@@ -70,6 +75,32 @@ char *randline(char *fn) {
 	}
 	free(line);
 	return chosen;	
+}
+
+void shuffle(Ball **balls,size_t nballs) {
+	int x[nballs],y[nballs],t;
+
+	for(int i=0;i<nballs;i++) {
+		x[i]=balls[i]->x;
+		y[i]=balls[i]->y;
+	}		
+
+	for(int i=nballs-1;i>0;i--) {
+		int j=rand()%(i+1);
+
+		t=x[i];
+		x[i]=x[j];
+		x[j]=t;
+
+		t=y[i];
+		y[i]=y[j];
+		y[j]=t;
+	}
+	
+	for(int i=0;i<nballs;i++) {
+		balls[i]->dx=x[i];
+		balls[i]->dy=y[i];
+	}		
 }
 
 int main(void) {
@@ -122,12 +153,14 @@ int main(void) {
     
     char *word=randline("rand.txt");
     
-    Ball *balls[strlen(word)];
+    size_t nballs=strlen(word);
     
-    for(int i=0;i<strlen(word);i++) {
+    Ball *balls[nballs];
+    
+    for(int i=0;i<nballs;i++) {
     	balls[i]=Ball_New(word[i],i*64,0);
     }
-    
+            
 	while(!quit) {
 		while(SDL_PollEvent(&event)) {
 			switch(event.type) {
@@ -135,13 +168,24 @@ int main(void) {
 			case SDL_KEYDOWN: 
 				switch(event.key.keysym.sym) {
 					case SDLK_ESCAPE: quit=true; break;
+					case SDLK_SPACE: if(!moving) { shuffle(balls,nballs); moving=true; } break;
 					default: break;
 				}
 			break;
 			default: break;
 			}
 		}
-		
+
+
+		if(moving) {
+			moving=false;
+			for(int i=0;i<nballs;i++) {
+				balls[i]->x+=sgn(balls[i]->dx-balls[i]->x);
+				balls[i]->y+=sgn(balls[i]->dy-balls[i]->y);
+				if(balls[i]->x!=balls[i]->dx || balls[i]->y!=balls[i]->dy) moving=true;
+			}
+		}
+
 		SetColor(6);
 		SDL_RenderClear(renderer);
 		
@@ -150,7 +194,7 @@ int main(void) {
 			SDL_RenderFillRect(renderer,&(SDL_Rect){i*32,SCREEN_HEIGHT-32,32,32});
 		}
 		
-		for(int i=0;i<strlen(word);i++) {
+		for(int i=0;i<nballs;i++) {
 			Ball_Draw(balls[i],renderer,texture,clips);
 		}
 		
