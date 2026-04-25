@@ -110,22 +110,22 @@ int main(void) {
 
 	SDL_Rect clips[27];
     for(int i = 0; i < 26; i++) {
-        clips[i].x = (i%13)*16;
-        clips[i].y = (i/13)*16;
-        clips[i].w = 16;
-        clips[i].h = 16;
+        clips[i].x = (i%13)*32;
+        clips[i].y = (i/13)*32;
+        clips[i].w = 32;
+        clips[i].h = 32;
     }
     clips[26].x = 0;
-    clips[26].y = 32;
-    clips[26].w = 32;
-    clips[26].h = 32;
+    clips[26].y = 64;
+    clips[26].w = 64;
+    clips[26].h = 64;
     
     char *word=randline("rand.txt");
     
     Ball *balls[strlen(word)];
     
     for(int i=0;i<strlen(word);i++) {
-    	balls[i]=Ball_New(word[i],i*32,0);
+    	balls[i]=Ball_New(word[i],i*64,0);
     }
     
 	while(!quit) {
