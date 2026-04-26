@@ -174,7 +174,7 @@ int main(void) {
     Ball *balls[nballs];
     
     for(int i=0;i<nballs;i++) {
-    	balls[i]=Ball_New(shuffled[i],i*64,64);
+    	balls[i]=Ball_New(shuffled[i],i*64,0);
     }
             
 	while(!quit) {
@@ -192,6 +192,7 @@ int main(void) {
 			}
 		}
 
+
 		if(moving) {
 			moving=false;
 			for(int i=0;i<nballs;i++) {
@@ -203,11 +204,6 @@ int main(void) {
 
 		SetColor(6);
 		SDL_RenderClear(renderer);
-
-		SetColor(9);
-		for(int i=0;i<nballs;i++) {
-			SDL_RenderDrawRect(renderer,&(SDL_Rect){i*64,0,64,64});
-		}
 		
 		for(int i=0;i<16;i++) {
 			SetColor(i);
